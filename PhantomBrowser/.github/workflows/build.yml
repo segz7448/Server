@@ -24,7 +24,7 @@ jobs:
           cache-dependency-path: PhantomBrowser/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
