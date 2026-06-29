@@ -1,0 +1,30 @@
+name: Build PhantomBrowser APK
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install deps
+        run: cd PhantomBrowser && npm ci
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+      - name: Make gradlew executable
+        run: chmod +x PhantomBrowser/android/gradlew
+      - name: Generate keystore
+        run: keytool -genkeypair -v -keystore PhantomBrowser/android/app/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname CN=PhantomBrowser
+      - name: Bundle JS
+        run: mkdir -p PhantomBrowser/android/app/src/main/assets && cd PhantomBrowser && npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+      - name: Build APK
+        run: cd PhantomBrowser/android && ./gradlew assembleRelease -PHANTOM_STORE_FILE=app/debug.keystore -PHANTOM_STORE_PASSWORD=android -PHANTOM_KEY_ALIAS=androiddebugkey -PHANTOM_KEY_PASSWORD=android --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PhantomBrowser-APK
+          path: PhantomBrowser/android/app/build/outputs/apk/release/app-release.apk
