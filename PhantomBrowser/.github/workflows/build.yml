@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: PhantomBrowser
 
     steps:
       - name: Checkout
@@ -18,6 +21,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: PhantomBrowser/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -37,7 +41,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ hashFiles('PhantomBrowser/android/**/*.gradle*', 'PhantomBrowser/android/**/gradle-wrapper.properties') }}
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
@@ -80,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PhantomBrowser-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: PhantomBrowser/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       - name: Get APK size
@@ -92,10 +96,8 @@ jobs:
 
       - name: Create release summary
         run: |
-          echo "## 📱 PhantomBrowser APK Built" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## PhantomBrowser APK Built" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| APK Size | $APK_SIZE |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | Release |" >> $GITHUB_STEP_SUMMARY
-          echo "| Arch | arm64-v8a |" >> $GITHUB_STEP_SUMMARY
